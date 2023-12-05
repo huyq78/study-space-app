@@ -1,10 +1,23 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
+import { BadRequestException, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
+  app.use(helmet());
+  app.useGlobalPipes(new ValidationPipe({
+    enableDebugMessages: process.env.NODE_ENV != 'production',
+    forbidUnknownValues: false,
+    forbidNonWhitelisted: false,
+    stopAtFirstError: true,
+    transform: true,
+    exceptionFactory: (ex) => {
+      return new BadRequestException(ex);
+    }
+  }));
   app.setGlobalPrefix('api', { exclude: ['healthz', 'ws'] });
   const config = new DocumentBuilder()
     .setTitle('Study Space App RESTful API')

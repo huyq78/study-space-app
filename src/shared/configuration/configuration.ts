@@ -20,7 +20,6 @@ export interface JwtConfiguration {
 
 export interface AppConfiguration {
   url: string;
-  cloudFrontUrl: string;
 }
 
 export interface Configuration {
@@ -52,6 +51,5 @@ export default (): Configuration => ({
   },
   app: {
     url: process.env.FRONT_BASE_URL || 'http://localhost:3000',
-    cloudFrontUrl: process.env.CLOUD_FRONT_URL
   }
 });

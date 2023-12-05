@@ -12,26 +12,16 @@ import { compare, genSalt, hash } from 'bcrypt';
 import { Collection, MongoClient, ObjectId } from 'mongodb';
 import { InjectClient, InjectCollection } from 'src/modules/mongodb';
 import { NormalCollection } from 'src/shared/constants/mongo.collection';
-import { UserModel } from 'src/shared/model/users.model';
-import { UserLoginModel } from 'src/shared/model/user-login.model';
+import { UserModel } from 'src/shared/models/users.model';
+import { UserLoginModel } from 'src/shared/models/user-login.model';
 import { ConfigService } from '@nestjs/config';
-import { AppConfiguration, JwtConfiguration, MailerConfiguration } from 'src/shared/configuration/configuration';
-import { CreateNewPasswordDTO } from 'src/shared/dto/request/authentication/createNewPassword.request';
-import { ForgotPasswordDTO } from 'src/shared/dto/request/authentication/forgotPassword.request';
+import { JwtConfiguration } from 'src/shared/configuration/configuration';
+import { CreateNewPasswordDTO } from 'src/shared/dto/request/authentication/create-new-password.request';
 import { AuthTokenInfo } from 'src/modules/jwt/interfaces';
-import { TargetModelConstant } from 'src/shared/model/user-tenant.model';
-import { TenantModel } from 'src/shared/model/tenants.model';
-import { EmailService } from 'src/modules/email-service/email.service';
-import { SendMailOptions } from 'src/modules/email-service/interfaces';
-import { ForgotPasswordResponse } from 'src/shared/dto/response/authentication/forgotPassword.response';
-import { CreateNewPasswordResponse } from 'src/shared/dto/response/authentication/createNewPassword.response';
-import { CREATE_USER_DEFAULT } from 'src/shared/constants/system-management.constants';
-import { ActivityLogService } from 'src/modules/activity-log/activity-log.service';
-import { CreateActivityLog } from 'src/modules/activity-log/interfaces';
-import { ActivityLogType, EntityType } from 'src/shared/constants/activity-log.constants';
+import { CreateNewPasswordResponse } from 'src/shared/dto/response/authentication/create-new-password.response';
 import { isType } from 'src/shared/utils/is-type.utils';
-import { RefreshTokenDTO } from 'src/shared/dto/request/authentication/refreshToken.request';
-import { RefreshTokenResponse } from 'src/shared/dto/response/authentication/refreshToken.response';
+import { RefreshTokenDTO } from 'src/shared/dto/request/authentication/refresh-token.request';
+import { RefreshTokenResponse } from 'src/shared/dto/response/authentication/refresh-token.response';
 
 @Injectable()
 export class AuthenticationService {
@@ -39,23 +29,17 @@ export class AuthenticationService {
   constructor(
     private readonly cfg: ConfigService,
     private readonly jwtService: JwtService,
-    private readonly emailService: EmailService,
-    private readonly activityLogService: ActivityLogService,
     @InjectCollection(NormalCollection.USERS)
     private readonly userCollection: Collection,
-    @InjectCollection(NormalCollection.USER_ROLES)
-    private readonly userRoleCollection: Collection,
-    @InjectCollection(NormalCollection.TENANTS)
-    private readonly tenantCollection: Collection,
     @InjectCollection(NormalCollection.USER_LOGIN)
     private readonly userLoginCollection: Collection,
     @InjectClient()
     private readonly client: MongoClient,
-  ) {
+  ) {}
 
-  }
-
-  public async signToken(payload: Record<string, unknown>): Promise<{ accessToken: string, refreshToken: string }> {
+  public async signToken(
+    payload: Record<string, unknown>,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const accessToken = await this.signAccessToken(payload);
       const refreshToken = await this.signRefreshToken(payload);
@@ -66,10 +50,15 @@ export class AuthenticationService {
     }
   }
 
-  public async signAccessToken(payload: Record<string, unknown>): Promise<string> {
+  public async signAccessToken(
+    payload: Record<string, unknown>,
+  ): Promise<string> {
     try {
       const jwt = this.cfg.getOrThrow<JwtConfiguration>('jwt');
-      const token = await this.jwtService.generateToken(payload, jwt.jwtLifetimeAccessToken);
+      const token = await this.jwtService.generateToken(
+        payload,
+        jwt.jwtLifetimeAccessToken,
+      );
       return token;
     } catch (error) {
       this.logger.error(error);
@@ -77,10 +66,15 @@ export class AuthenticationService {
     }
   }
 
-  public async signRefreshToken(payload: Record<string, unknown>): Promise<string> {
+  public async signRefreshToken(
+    payload: Record<string, unknown>,
+  ): Promise<string> {
     try {
       const jwt = this.cfg.getOrThrow<JwtConfiguration>('jwt');
-      const token = await this.jwtService.generateToken(payload, jwt.jwtLifetimeRefreshToken);
+      const token = await this.jwtService.generateToken(
+        payload,
+        jwt.jwtLifetimeRefreshToken,
+      );
       return token;
     } catch (error) {
       this.logger.error(error);
@@ -88,41 +82,26 @@ export class AuthenticationService {
     }
   }
 
-  public async refreshToken({ token }: RefreshTokenDTO): Promise<RefreshTokenResponse> {
+  public async refreshToken({
+    token,
+  }: RefreshTokenDTO): Promise<RefreshTokenResponse> {
     const session = this.client.startSession();
     try {
       session.startTransaction();
-      const userLogin: UserLoginModel = await this.userLoginCollection.findOne({
-        token
-      }) as UserLoginModel;
+      const userLogin: UserLoginModel = (await this.userLoginCollection.findOne(
+        {
+          token,
+        },
+      )) as UserLoginModel;
 
       if (!userLogin) {
         throw new BadRequestException('refresh-token-not-found');
       }
 
-      if (!userLogin || userLogin.ttl.getTime() <= new Date().getTime()) {
-        const user: UserModel = await this.getUser({ _id: userLogin.userId });
-        //activity log
-        const createActivityLog: CreateActivityLog = {
-          actionBy: {
-            _id: user._id,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email: user.email,
-            avatar: user.avatar,
-            is_active: user.is_active,
-            role: user.role,
-          },
-          actionType: ActivityLogType.LOGGED_OUT,
-        }
-        await this.activityLogService.create(createActivityLog, session);
-        throw new BadRequestException('expired-token');
-      }
-
       const decodeToken = await this.jwtService.decodeToken(token);
       if (isType<AuthTokenInfo>(decodeToken) && decodeToken.userId) {
         const user = await this.userCollection.findOne({
-          _id: new ObjectId(decodeToken.userId)
+          _id: new ObjectId(decodeToken.userId),
         });
         const accessToken = await this.signAccessToken({
           userId: user._id,
@@ -140,7 +119,6 @@ export class AuthenticationService {
     const session = this.client.startSession();
 
     try {
-      const db = this.client.db(this.cfg.getOrThrow('database').dbName);
       session.startTransaction();
 
       const response = new LoginResponse();
@@ -152,7 +130,7 @@ export class AuthenticationService {
         throw new NotFoundException('user-not-found');
       }
 
-      if (!user.is_active || user.is_first_login || !user.salt || !user.hash) {
+      if (!user.isActive) {
         throw new BadRequestException('account-is-not-active');
       }
       const rawPassword = `${user.salt}.${loginDto.password}`;
@@ -164,12 +142,10 @@ export class AuthenticationService {
         throw new BadRequestException('invalid-password');
       }
 
-
-
       const jwt = this.cfg.getOrThrow<JwtConfiguration>('jwt');
       const payload = {
         userId: user._id,
-        status: user.is_active
+        status: user.isActive,
       };
 
       const { accessToken, refreshToken } = await this.signToken(payload);
@@ -179,30 +155,14 @@ export class AuthenticationService {
       userLogin.userId = user._id;
       userLogin.token = refreshToken; //save refresh token
       const currentDate = new Date();
-      userLogin.ttl = new Date(currentDate.getTime() + jwt.jwtLifetimeRefreshToken * 1000);
+      userLogin.ttl = new Date(
+        currentDate.getTime() + jwt.jwtLifetimeRefreshToken * 1000,
+      );
 
       response.token = accessToken;
       response.refreshToken = refreshToken;
 
-      await db.collection(NormalCollection.USER_LOGIN).insertOne(userLogin, { session });
-
-      //activity log
-      const createActivityLog: CreateActivityLog = {
-        actionBy: {
-          _id: user._id,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          email: user.email,
-          avatar: user.avatar,
-          is_active: user.is_active,
-          role: user.role,
-        },
-        actionType: ActivityLogType.LOGGED_IN,
-      }
-      await this.activityLogService.create(createActivityLog, session, [user._id.toString()]);
-
-      // Get role
-      user = await this.getRoleUser(user);
+      await this.userLoginCollection.insertOne(userLogin, { session });
 
       response.id = user._id.toString();
       response.email = user.email;
@@ -223,20 +183,21 @@ export class AuthenticationService {
     const session = this.client.startSession();
 
     try {
-      const db = this.client.db(this.cfg.getOrThrow('database').dbName);
       session.startTransaction();
 
       if (!token) {
         throw new BadGatewayException();
       }
 
-      const userLogin: UserLoginModel = await db.collection(NormalCollection.USER_LOGIN).findOne({
-        token
-      }) as UserLoginModel;
+      const userLogin: UserLoginModel = (await this.userLoginCollection.findOne(
+        {
+          token,
+        },
+      )) as UserLoginModel;
 
       if (!userLogin) {
         throw new BadRequestException('Token not found');
-      };
+      }
 
       const user: UserModel = await this.getUser({ _id: userLogin.userId });
 
@@ -245,22 +206,10 @@ export class AuthenticationService {
         throw new NotFoundException('User not found');
       }
 
-      const userLoginResult = await db.collection(NormalCollection.USER_LOGIN).deleteOne({ token }, { session });
-
-      //activity log
-      const createActivityLog: CreateActivityLog = {
-        actionBy: {
-          _id: user._id,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          email: user.email,
-          avatar: user.avatar,
-          is_active: user.is_active,
-          role: user.role,
-        },
-        actionType: ActivityLogType.LOGGED_OUT,
-      }
-      await this.activityLogService.create(createActivityLog, session, [user._id.toString()]);
+      const userLoginResult = await this.userLoginCollection.deleteOne(
+        { token },
+        { session },
+      );
 
       await session.commitTransaction();
       return userLoginResult.acknowledged && userLoginResult.deletedCount > 0;
@@ -273,64 +222,27 @@ export class AuthenticationService {
     }
   }
 
-  public async forgotPassword(forgotPasswordDto: ForgotPasswordDTO): Promise<ForgotPasswordResponse> {
-    const { email } = forgotPasswordDto;
-    const user: UserModel = (await this.userCollection.findOne({ email })) as UserModel;
-    if (!user) {
-      this.logger.error('User not found');
-      throw new NotFoundException('User not found');
-    }
-
-    if (!user.is_active) throw new BadRequestException('Your account is currently inactive. Please contact customer support for assistance in reactivating your account.');
-
-    const currentDate = new Date();
-    const jwt = this.cfg.getOrThrow<JwtConfiguration>('jwt');
-    const token = await this.jwtService.generateToken({
-      userId: user._id,
-      status: user.is_active,
-      expired_at: new Date(currentDate.getTime() + 15 * 60 * 1000), //expire 15 minutes
-    }, jwt.jwtLifetimeForgotPassword);
-
-    const app = this.cfg.getOrThrow<AppConfiguration>('app');
-    const mailer = this.cfg.getOrThrow<MailerConfiguration>('mailer');
-    const createNewPasswordLink = `${app.url}/change-password?token=${token}`;
-    const options: SendMailOptions = {
-      to: email,
-      from: mailer.mailerSendFrom,
-      subject: 'Password Reset Request',
-      template: 'reset-password.ejs',
-      context: { firstname: user.first_name, createNewPasswordLink, emailSupport: mailer.emailSupport }
-    }
-    const res = await this.emailService.sendMail(options);
-
-    await this.userLoginCollection.deleteMany({
-      user_id: user._id
-    });
-
-    let msg: string;
-    if (res) msg = 'send-mail-success';
-    else msg = 'send-mail-fail';
-    return { msg };
-  }
-
   public isExpiredToken(date: Date): boolean {
     if (new Date(date).getTime() > new Date().getTime()) return false;
     return true;
   }
 
-  public async createNewPassword(createNewPasswordDTO: CreateNewPasswordDTO): Promise<CreateNewPasswordResponse> {
+  public async createNewPassword(
+    createNewPasswordDTO: CreateNewPasswordDTO,
+  ): Promise<CreateNewPasswordResponse> {
     const session = this.client.startSession();
 
     try {
-      const db = this.client.db(this.cfg.getOrThrow('database').dbName);
       session.startTransaction();
 
       const { token, newPassword } = createNewPasswordDTO;
       let user: UserModel;
       let tobe_updated = {};
-      const decodeToken: AuthTokenInfo = (await this.jwtService.decodeToken(token)) as AuthTokenInfo;
+      const decodeToken: AuthTokenInfo = (await this.jwtService.decodeToken(
+        token,
+      )) as AuthTokenInfo;
 
-      if (!decodeToken || this.isExpiredToken(decodeToken.expired_at)) {
+      if (!decodeToken || this.isExpiredToken(decodeToken.expiredAt)) {
         throw new BadRequestException('Expired token');
       }
 
@@ -341,58 +253,30 @@ export class AuthenticationService {
         throw new NotFoundException('User not found');
       }
 
-      const newSalt = await genSalt(CREATE_USER_DEFAULT.SALT_HASH);
+      const newSalt = await genSalt(10);
       const newHash = await hash(`${newSalt}.${newPassword}`, newSalt);
 
       tobe_updated['salt'] = newSalt;
       tobe_updated['hash'] = newHash;
 
-      const updateUserResult = await db.collection(NormalCollection.USERS).updateOne(
+      const updateUserResult = await this.userCollection.updateOne(
         { _id: user._id },
         { $set: tobe_updated },
-        { session }
+        { session },
       );
 
-      await this.userLoginCollection.deleteMany({
-        user_id: user._id
-      }, { session });
+      await this.userLoginCollection.deleteMany(
+        {
+          user_id: user._id,
+        },
+        { session },
+      );
 
       let msg: string;
       if (updateUserResult.acknowledged && updateUserResult.modifiedCount > 0) {
         msg = 'reset-new-password-success';
-
-        //activity log
-        const createActivityLog: CreateActivityLog = {
-          actionBy: {
-            _id: user._id,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email: user.email,
-            avatar: user.avatar,
-            is_active: user.is_active,
-            role: user.role,
-          },
-          actionType: ActivityLogType.UPDATED_ACCOUNT,
-          targetObject: {
-            type: EntityType.USER,
-            info: {
-              id: user._id,
-              first_name: user.first_name,
-              last_name: user.last_name,
-              email: user.email
-            },
-            oldValue: {
-              password: user.hash
-            },
-            newValue: {
-              password: newHash
-            }
-          }
-        }
-        await this.activityLogService.create(createActivityLog, session);
         await session.commitTransaction();
-      }
-      else msg = 'reset-new-password-fail';
+      } else msg = 'reset-new-password-fail';
       return { msg };
     } catch (error) {
       this.logger.error(error);
@@ -403,73 +287,16 @@ export class AuthenticationService {
     }
   }
 
-  public async getRoleUser(user: UserModel): Promise<UserModel> {
-    const userRole = await this.userRoleCollection.aggregate([
-      { "$match": { "user_id": user._id } },
-      {
-        "$lookup": {
-          "from": "roles",
-          "localField": "role_id",
-          "foreignField": "_id",
-          pipeline: [
-            {
-              $lookup: {
-                from: NormalCollection.ROLE_GROUP_PERMISSIONS,
-                localField: "_id",
-                foreignField: "role_id",
-                pipeline: [
-                  {
-                    $lookup: {
-                      from: NormalCollection.GROUP_PERMISSIONS,
-                      localField: "group_permission_id",
-                      foreignField: "_id",
-                      as: "permission"
-                    }
-                  },
-                  {
-                    $unwind: "$permission"
-                  }
-                ],
-                as: "groups"
-              }
-            }
-          ],
-          "as": "role"
-        }
-      },
-      {
-        "$unwind": "$role"
-      }
-    ]).toArray();
-    if (userRole.length) user.role = userRole[0].role;
-    return user;
-  }
-
   async getUser(filter: any): Promise<UserModel> {
-    const user = (await this.userCollection.aggregate([
-      {
-        $match: filter
-      },
-      {
-        $lookup: {
-          from: NormalCollection.USER_ROLES,
-          localField: '_id',
-          foreignField: 'user_id',
-          as: 'user_role',
-        },
-      },
-      {
-        $lookup: {
-          from: NormalCollection.ROLES,
-          localField: 'user_role.role_id',
-          foreignField: '_id',
-          as: 'role',
-        },
-      },
-      {
-        $unwind: '$role',
-      }
-    ]).toArray())[0] as UserModel;
+    const user = (
+      await this.userCollection
+        .aggregate([
+          {
+            $match: filter,
+          },
+        ])
+        .toArray()
+    )[0] as UserModel;
     return user;
   }
 }
