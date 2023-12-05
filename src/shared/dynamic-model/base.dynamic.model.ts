@@ -14,7 +14,7 @@ import {
   InsertOneOptions,
   BulkWriteOptions,
 } from 'mongodb';
-import { BaseModel } from '../model/base.model';
+import { BaseModel } from '../models/base.model';
 
 export class BaseDynamic<T extends BaseModel> {
   protected collectionPostfix: string;

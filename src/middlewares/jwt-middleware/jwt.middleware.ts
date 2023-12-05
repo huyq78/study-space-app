@@ -12,10 +12,7 @@ export class JwtAuthenticationMiddleware implements NestMiddleware {
 
   constructor(
     private readonly jwtService: JwtService,
-    @InjectCollection(NormalCollection.USER_LOGIN) private readonly userLoginCollection: Collection,
     @InjectCollection(NormalCollection.USERS) private readonly userCollection: Collection,
-    @InjectCollection(NormalCollection.ROLE_GROUP_PERMISSIONS)
-    private readonly roleGroupPermissionsCollection: Collection,
   ) {}
 
   async use(req: Request, _: Response, next: NextFunction) {
@@ -46,74 +43,22 @@ export class JwtAuthenticationMiddleware implements NestMiddleware {
           },
         },
         {
-          $lookup: {
-            from: NormalCollection.USER_ROLES,
-            localField: '_id',
-            foreignField: 'user_id',
-            as: 'user_role',
-          },
-        },
-        {
-          $lookup: {
-            from: NormalCollection.ROLES,
-            localField: 'user_role.role_id',
-            foreignField: '_id',
-            as: 'role',
-          },
-        },
-        {
-          $unwind: '$role',
-        },
-        {
-          $group: {
-            _id: '$_id',
-            email: { $first: '$email' },
-            avatar: { $first: '$avatar' },
-            first_name: { $first: '$first_name' },
-            last_name: { $first: '$last_name' },
-            role: { $first: '$role' },
-            is_active: { $first: '$is_active' },
-          },
-        },
-        {
           $project: {
             email: 1,
             avatar: 1,
             first_name: 1,
             last_name: 1,
             role: 1,
-            is_active: 1,
+            isActive: 1,
           },
         },
       ])
       .toArray();
 
-    if (!user[0].is_active)
+    if (!user[0].isActive)
       throw new BadRequestException(
         'Your account is currently inactive. Please contact customer support for assistance in reactivating your account.',
       );
-
-    const group_permissions = await this.roleGroupPermissionsCollection
-      .aggregate([
-        {
-          $match: {
-            role_id: user[0].role._id,
-          },
-        },
-        {
-          $lookup: {
-            from: 'group_permissions',
-            localField: 'group_permission_id',
-            foreignField: '_id',
-            as: 'group_permissions',
-          },
-        },
-      ])
-      .toArray();
-    user[0].group_permissions_keys = [];
-    if (group_permissions?.length != 0) {
-      user[0].group_permissions_keys = group_permissions.map((x) => x.group_permissions[0].key);
-    }
 
     req['user'] = user[0];
 

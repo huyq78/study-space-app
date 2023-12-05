@@ -10,7 +10,6 @@ import { NormalCollection } from 'src/shared/constants/mongo.collection';
     MongoModule.forFeature([
       NormalCollection.USER_LOGIN,
       NormalCollection.USERS,
-      NormalCollection.ROLE_GROUP_PERMISSIONS,
     ]),
   ],
   providers: [JwtAuthenticationMiddleware],
@@ -22,14 +21,12 @@ export class JwtAuthenticationModule implements NestModule {
       .apply(JwtAuthenticationMiddleware)
       .exclude(
         'auth/login',
-        'healthz',
         'ws',
         'test/(.*)',
-        'init/start',
         'auth/forgot-password',
         'auth/create-new-password',
         'auth/refresh-token',
-        'user-mgt/account/activate',
+        'user/register',
       )
       .forRoutes('*');
   }
