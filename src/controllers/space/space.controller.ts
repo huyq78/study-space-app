@@ -33,8 +33,9 @@ export class SpaceController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.spaceService.findOne(+id);
+  @ApiBearerAuth()
+  async findOne(@Param('id') id: string) {
+    return await this.spaceService.findOne(id);
   }
 
   @Patch(':id')

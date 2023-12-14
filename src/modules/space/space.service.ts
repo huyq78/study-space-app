@@ -50,7 +50,7 @@ export class SpaceService {
     return `This action returns all space`;
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const session = this.client.startSession();
     try {
       session.startTransaction();
@@ -67,10 +67,10 @@ export class SpaceService {
 
       await session.commitTransaction();
 
-      return BaseResponse.ok('Create space successfully');
+      return BaseResponse.ok('Get space successfully', space);
     } catch (error) {
       this.logger.error('Got error when get space');
-      this.logger.error(error);
+      this.logger.error(error.message);
       await session.abortTransaction();
       await session.endSession();
       throw new BadRequestException(error);
