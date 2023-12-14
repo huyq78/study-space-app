@@ -125,6 +125,7 @@ export class AuthenticationService {
 
       let user: UserModel = await this.getUser({ email: loginDto.email });
 
+      console.log(user);
       if (!user) {
         this.logger.error('User not found');
         throw new NotFoundException('user-not-found');

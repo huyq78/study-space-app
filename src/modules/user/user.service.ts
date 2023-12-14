@@ -222,7 +222,17 @@ export class UserService {
   public async getProfile(userId: string): Promise<GetProfileResponse> {
     let user: UserModel = (await this.userCollection.findOne(
       { _id: new ObjectId(userId) },
-      { projection: { salt: 0, hash: 0 } },
+      {
+        projection: {
+          email: 1,
+          avatar: 1,
+          firstName: 1,
+          lastName: 1,
+          role: 1,
+          isActive: 1,
+          phoneNumber: 1,
+        },
+      },
     )) as UserModel;
     if (!user) {
       this.logger.error('User not found');

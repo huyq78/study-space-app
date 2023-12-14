@@ -46,10 +46,11 @@ export class JwtAuthenticationMiddleware implements NestMiddleware {
           $project: {
             email: 1,
             avatar: 1,
-            first_name: 1,
-            last_name: 1,
+            firstName: 1,
+            lastName: 1,
             role: 1,
             isActive: 1,
+            phoneNumber: 1,
           },
         },
       ])
