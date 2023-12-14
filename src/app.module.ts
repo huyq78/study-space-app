@@ -14,6 +14,7 @@ import { GlobalExceptionFilter } from './shared/exceptions/exception.filter';
 import validations from './shared/validations/index.validations';
 import { AppService } from './app.service';
 import { JwtAuthenticationModule } from './middlewares/jwt-middleware/jwt.module';
+import { SpaceModule } from './modules/space/space.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { JwtAuthenticationModule } from './middlewares/jwt-middleware/jwt.module
       },
       inject: [ConfigService],
     }),
+    SpaceModule,
   ],
   controllers: [AppController, ...controllers],
   providers: [

@@ -57,6 +57,8 @@ export class UserService {
 
       // Set default fields
       user['isActive'] = true;
+      delete user.password;
+      delete user.confirmPassword;
 
       // Save user information
       await db.collection(NormalCollection.USERS).insertOne(
@@ -137,35 +139,6 @@ export class UserService {
     }
   }
 
-  public async populateUsers(
-    userId: ObjectId[],
-    db: Db,
-    session: ClientSession,
-  ) {
-    try {
-      const users: UserModel[] = (await db
-        .collection(NormalCollection.USERS)
-        .find(
-          {
-            _id: { $in: userId },
-          },
-          {
-            projection: {
-              email: 1,
-              name: 1,
-              phone_number: 1,
-            },
-            session,
-          },
-        )
-        .toArray()) as UserModel[];
-      return users;
-    } catch {
-      this.logger.error('Populate user unsuccessfully');
-      throw new BadRequestException();
-    }
-  }
-
   public async updateProfile(
     userId: string,
     updateProfileDto: UpdateProfileDTO,
@@ -177,7 +150,7 @@ export class UserService {
       const db = this.client.db(this.cfg.getOrThrow('database').dbName);
       session.startTransaction();
 
-      const { first_name, last_name, phone_code, phone_number } =
+      const { firstName, lastName, phoneCode, phoneNumber } =
         updateProfileDto;
 
       const user: UserModel = await this.authService.getUser({
@@ -191,17 +164,17 @@ export class UserService {
 
       const data = {};
 
-      if (user.first_name !== first_name || user.last_name !== last_name) {
-        data['firstName'] = first_name;
-        data['lastName'] = last_name;
+      if (user.firstName !== firstName || user.lastName !== lastName) {
+        data['firstName'] = firstName;
+        data['lastName'] = lastName;
       }
 
       if (
-        user.phone_code !== phone_code ||
-        user.phone_number !== phone_number
+        user.phone_code !== phoneCode ||
+        user.phone_number !== phoneNumber
       ) {
-        data['phoneCode'] = phone_code;
-        data['phoneNumber'] = phone_number;
+        data['phoneCode'] = phoneCode;
+        data['phoneNumber'] = phoneNumber;
       }
 
       const updateUserResult = await db
