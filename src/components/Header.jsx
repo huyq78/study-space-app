@@ -66,7 +66,7 @@ const Icon = styled(FontAwesomeIcon)`
     margin: 0px 5px;
     cursor: pointer;
 `
-function Navbar() {
+function Header() {
   return (
     <Container>
         <Wrapper>
@@ -95,4 +95,4 @@ function Navbar() {
   )
 }
 
-export default Navbar
+export default Header

@@ -38,6 +38,7 @@ const Item = styled.button`
     gap: 10px;
     border-radius: 10px;
     cursor: pointer;
+    border: none;
     &:active{
         background-color: rgb(120, 120, 120);
     }

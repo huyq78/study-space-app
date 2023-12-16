@@ -37,3 +37,8 @@
     transform: rotate(360deg);
   }
 }
+
+[type="checkbox"]:checked,
+[type="checkbox"]:not(:checked){
+display: none;
+}
