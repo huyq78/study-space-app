@@ -14,7 +14,7 @@ import { UpdateProfileDTO } from 'src/shared/dto/request/user/update-profile.req
 import { ChangePasswordResponse } from 'src/shared/dto/response/user/change-password.response';
 import { GetProfileResponse } from 'src/shared/dto/response/user/get-profile.response';
 import { UpdateProfileResponse } from 'src/shared/dto/response/user/update-profile.response';
-import { UserModel } from 'src/shared/models/users.model';
+import { ROLE, UserModel } from 'src/shared/models/users.model';
 import { ConfigService } from '@nestjs/config';
 import { ListUsersDTO } from 'src/shared/dto/request/user/list-users.request';
 import { RegisterDTO } from 'src/shared/dto/request/user/register.request';
@@ -53,6 +53,7 @@ export class UserService {
       const newHash = await hash(`${newSalt}.${body.password}`, newSalt);
       user.salt = newSalt;
       user.hash = newHash;
+      user.role = ROLE.USER;
       user.isActive = true;
 
       // Set default fields
