@@ -46,8 +46,25 @@ export class SpaceService {
     }
   }
 
-  findAll() {
-    return `This action returns all space`;
+  async findAll() {
+    const session = this.client.startSession();
+    try {
+      session.startTransaction();
+
+      const spaces = await this.spaceCollection.find().toArray();
+
+      await session.commitTransaction();
+
+      return BaseResponse.ok('Get spaces successfully', spaces);
+    } catch (error) {
+      this.logger.error('Got error when create space');
+      this.logger.error(error);
+      await session.abortTransaction();
+      await session.endSession();
+      throw new BadRequestException(error);
+    } finally {
+      await session.endSession();
+    }
   }
 
   async findOne(id: string) {
@@ -62,7 +79,7 @@ export class SpaceService {
         { session },
       );
       if (!space) {
-        throw BaseResponse.notFound()
+        throw BaseResponse.notFound();
       }
 
       await session.commitTransaction();

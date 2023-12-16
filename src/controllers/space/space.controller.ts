@@ -15,25 +15,24 @@ import { ApiOkResponseBase } from 'src/shared/utils/swagger.utils';
 import { BaseResponse } from 'src/shared/dto/base.response.dto';
 
 @ApiTags('space')
+@ApiBearerAuth()
 @Controller('/space')
 export class SpaceController {
   constructor(private readonly spaceService: SpaceService) {}
 
   @Post()
   @ApiBody({ type: CreateSpaceDTO })
-  @ApiBearerAuth()
   @ApiOkResponseBase(BaseResponse)
   async create(@Body() createSpaceDto: CreateSpaceDTO) {
     return await this.spaceService.create(createSpaceDto);
   }
 
   @Get()
-  findAll() {
-    return this.spaceService.findAll();
+  async findAll() {
+    return await this.spaceService.findAll();
   }
 
   @Get(':id')
-  @ApiBearerAuth()
   async findOne(@Param('id') id: string) {
     return await this.spaceService.findOne(id);
   }
