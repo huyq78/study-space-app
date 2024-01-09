@@ -15,6 +15,8 @@ import validations from './shared/validations/index.validations';
 import { AppService } from './app.service';
 import { JwtAuthenticationModule } from './middlewares/jwt-middleware/jwt.module';
 import { SpaceModule } from './modules/space/space.module';
+import { WebSocketModule } from './modules/socket/websocket.module';
+import { WebsiteBlockerModule } from './modules/website-blocker/website-blocker.module';
 
 @Module({
   imports: [
@@ -45,6 +47,8 @@ import { SpaceModule } from './modules/space/space.module';
       inject: [ConfigService],
     }),
     SpaceModule,
+    WebSocketModule,
+    WebsiteBlockerModule,
   ],
   controllers: [AppController, ...controllers],
   providers: [

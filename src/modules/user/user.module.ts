@@ -10,9 +10,6 @@ import { AuthenticationModule } from 'src/authentication/authentication.module';
     AuthenticationModule,
   ],
   providers: [UserService],
-  exports: [UserService]
+  exports: [UserService],
 })
-
-export class UserModule {
-
-}
+export class UserModule {}

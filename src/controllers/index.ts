@@ -3,5 +3,6 @@
 import { AuthenticationController } from './authentication/authentication.controller';
 import { SpaceController } from './space/space.controller';
 import { UserController } from './user/user.controller';
+import { WebsiteBlockerController } from './website-blocker/website-blocker.controller';
 
-export default [UserController, AuthenticationController, SpaceController];
+export default [UserController, AuthenticationController, SpaceController, WebsiteBlockerController];
