@@ -1,8 +1,11 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
-import ManageSpace from './ManageSpace';
-import Timer from './Timer';
+import ManageSpace from './space/ManageSpace';
+import Timer from './timer/Timer';
+import { getListSpace } from '../redux/apiCall';
+import { useDispatch } from 'react-redux';
+import { listSpace, setUpload } from '../redux/spaceRedux';
 
 const Container = styled.div`
     position: absolute;
@@ -58,17 +61,30 @@ const Icon = styled(FontAwesomeIcon)`
 function Sidebar() {
     const [manageSpace, setManageSpace] = useState(false);
     const [timer, setTimer] = useState(false);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (localStorage.getItem("access_token")) {
+            getListSpace().then(res => {
+                dispatch(listSpace(res));
+            })
+        }
+    }, [])
+
     return (
         <>
             <Container>
                 <Wrapper>
-                    <Item onClick={()=>setManageSpace(!manageSpace)}>
+                    <Item onClick={() => {
+                        setManageSpace(!manageSpace);
+                        dispatch(setUpload(false));
+                    }}>
                         <Title>
                             SPACE
                         </Title>
                         <Icon icon="fa-solid fa-mountain-sun" />
                     </Item>
-                    <Item onClick={()=> setTimer(!timer)}>
+                    <Item onClick={() => setTimer(!timer)}>
                         <Title>
                             TIMER
                         </Title>
@@ -94,8 +110,8 @@ function Sidebar() {
                     </Item>
                 </Wrapper>
             </Container>
-            {manageSpace ? <ManageSpace/> : <></>}
-            {timer ? <Timer/> : <></>}
+            {manageSpace ? <ManageSpace /> : <></>}
+            {timer ? <Timer /> : <></>}
         </>
     )
 }

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react'
+import { useSelector } from 'react-redux';
 import styled from 'styled-components'
 
 const Container = styled.div`
@@ -11,16 +12,19 @@ const Container = styled.div`
 
 const Video = styled.video`
     position: relative;
-    top: -170px;
+    height: 108vh;
+    left: -70px;
 `
 function Space() {
+    const space = useSelector((state) => state.space)
     const vidRef = useRef();
     const play = () =>{
         vidRef.current.play();
     }
+
     return (
         <Container>
-            <Video onClick={()=> play()} ref={vidRef} width="1680" height="945" src="https://firebasestorage.googleapis.com/v0/b/study-space-99611.appspot.com/o/Raining%20in%20Lofi%20City%20-%20lofi%20chill%20night%20%5BListen%20to%20it%20to%20escape%20from%20a%20hard%20day%5D.mp4?alt=media&token=f6e8909f-faf4-4895-a9a1-d52e4977c13a" autoPlay ></Video>
+            <Video onClick={()=> play()} ref={vidRef} width="1680" height="945" src={space.currentSpace} autoPlay muted={space.muted} loop></Video>
         </Container>
     )
 }

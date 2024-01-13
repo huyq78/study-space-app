@@ -1,6 +1,11 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components'
+import { Popover } from 'antd';
+import { getProfile } from '../redux/apiCall';
+import { updateProfile } from '../redux/userRedux';
+import { setMute } from '../redux/spaceRedux';
 
 const Container = styled.div`
     position: fixed;
@@ -37,7 +42,7 @@ const UserRoom = styled.div`
     border-radius: 5px;
     background: rgb(244, 244, 244) !important;
 `
-const InviteBtn = styled.button`
+const Btn = styled.button`
     height: auto;
     margin: 0px 4px;
     padding: 4px 9px;
@@ -64,35 +69,81 @@ const RoonInfo = styled.div`
 
 const Icon = styled(FontAwesomeIcon)`
     margin: 0px 5px;
+    height: 20px;
     cursor: pointer;
 `
-function Header() {
-  return (
-    <Container>
-        <Wrapper>
-            <Item>
 
-            </Item>
-            <Item>
-                <UserRoom>
-                    Huy's room
-                </UserRoom>
-                <InviteBtn>
-                    Invite
-                </InviteBtn>
-                <RoonInfo>
-                    H
-                </RoonInfo>
-            </Item>
-            <Item>
-                <Icon icon="fa-solid fa-arrow-up-from-bracket" />
-                <Icon icon="fa-solid fa-volume-high" />
-                <Icon icon="fa-solid fa-up-right-and-down-left-from-center" />
-                <Icon icon="fa-regular fa-user" />
-            </Item>
-        </Wrapper>
-    </Container>
-  )
+const Button = styled.button`
+    border: none;
+    height: 20px;
+    width: 30px;
+    background-color: white;
+    padding: 0;
+`
+
+const ContentWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+`
+function Header() {
+    const dispatch = useDispatch();
+    const [profile, setProfile] = useState();
+    const space = useSelector((state) => state.space);
+    const profileState = useSelector((state) => state.user.profile);
+    useEffect(() => {
+        if (localStorage.getItem("access_token")) {
+            const fetchProfile = async () => {
+                const res = await getProfile();
+                setProfile(res);
+            }
+            fetchProfile();
+        }
+    }, [profileState])
+
+    const content = (
+        <div>
+            <p>{profile?.email}</p>
+            <p>{profile?.phoneNumber}</p>
+            <Btn onClick={() => {
+                localStorage.clear();
+                window.location.reload();
+            }}>Logout</Btn>
+        </div>
+    );
+
+    return (
+        <Container>
+            <Wrapper>
+                <Item>
+
+                </Item>
+                <Item>
+                    <UserRoom>
+                        {profile?.firstName}'s room
+                    </UserRoom>
+                    <Btn>
+                        Invite
+                    </Btn>
+                    <RoonInfo>
+                        {profile?.firstName}
+                    </RoonInfo>
+                </Item>
+                <Item>
+                    <Icon icon="fa-solid fa-arrow-up-from-bracket" />
+                    {
+                        space.muted ? <Button onClick={() => dispatch(setMute(false))}><Icon icon="fa-solid fa-volume-xmark" /></Button> :
+                            <Button onClick={() => dispatch(setMute(true))}><Icon icon="fa-solid fa-volume-high" /></Button>
+                    }
+                    <Icon icon="fa-solid fa-up-right-and-down-left-from-center" />
+                    <Popover content={content} title={profile?.firstName + " " + profile?.lastName} trigger="click">
+                        <Button><Icon icon="fa-regular fa-user" /></Button>
+                    </Popover>
+                </Item>
+            </Wrapper>
+        </Container>
+    )
 }
 
 export default Header

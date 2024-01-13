@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react'
 import styled, { keyframes } from 'styled-components'
-import imgSrc from '../../src/background.jpg'
+import { login, register } from '../redux/apiCall'
+import { useDispatch, useSelector } from "react-redux";
 
 const slide = keyframes`
   0% {
@@ -109,11 +110,16 @@ const NameContainer = styled.div`
   align-items: center;
   width: 100%;
 `
+
+
 function Auth() {
+  const dispatch = useDispatch();
   const [form, setForm] = useState("login")
-  const [email, setEmail] = useState()
-  const [password, setPassword] = useState()
-  const [user, setUser] = useState({
+  const [userLogin, setUserLogin] = useState({
+    email: "",
+    password: "",
+  })
+  const [userRegister, setUserRegister] = useState({
     firstName: "",
     lastName: "",
     email: "",
@@ -122,52 +128,19 @@ function Auth() {
     confirmPassword: ""
   })
 
-  const login = () => {
-    fetch(`http://localhost:8888/api/auth/login`, {
-      method: "POST",
-      headers: {
-        'Content-type': 'application/json; charset=UTF-8',
-      },
-      body: JSON.stringify({
-        email: email,
-        password: password
-      }
-      )
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        console.log(json)
-        window.localStorage.setItem("token", json.data.token)
-      });
-  }
-
-  const register = () => {
-    fetch(`http://localhost:8888/api/user/register`, {
-      method: "POST",
-      headers: {
-        'Content-type': 'application/json; charset=UTF-8',
-      },
-      body: JSON.stringify(user)
-    })
-      .then((res) => res.json())
-      .then((json) => {
-        console.log(json)
-      });
-  }
-
-  const onChangeEmail = useCallback(
+  const onChangeUserLogin = useCallback(
     (e) => {
-      setEmail(e.target.value);
-    }, [email])
+      setUserLogin((user)=>{
+        return {
+          ...user, [e.target.name]: e.target.value
+        }
+      })
+    }
+  )
 
-  const onChangePassword = useCallback(
-    (e) => {
-      setPassword(e.target.value);
-    }, [password])
-
-    const onChangeUser = useCallback(
+    const onChangeUserRegister = useCallback(
       (e) => {
-        setUser((user)=>{
+        setUserRegister((user)=>{
           return {
             ...user, [e.target.name]: e.target.value
           }
@@ -180,29 +153,29 @@ function Auth() {
         <Wrapper>
           <WelcomeText>Welcome</WelcomeText>
           <InputContainer>
-            <Input type="text" placeholder="Email" onChange={onChangeEmail}/>
-            <Input type="password" placeholder="Password" onChange={onChangePassword}/>
+            <Input type="mail" name='email' placeholder="Email" onChange={onChangeUserLogin}/>
+            <Input type="password" name='password' placeholder="Password" onChange={onChangeUserLogin}/>
           </InputContainer>
           <ButtonContainer>
-            <StyledButton onClick={() => login()}> LOGIN </StyledButton>
+            <StyledButton onClick={() => login(dispatch, userLogin)}> LOGIN </StyledButton>
           </ButtonContainer>
-          <SwitchButton onClick={() => setForm("sign-up")}>SIGN UP</SwitchButton>
+          <SwitchButton onClick={() => setForm("register")}>REGISTER</SwitchButton>
         </Wrapper>
         :
         <Wrapper>
           <WelcomeText>Welcome</WelcomeText>
           <InputContainer>
             <NameContainer>
-              <Input type="text" placeholder="First name" name="firstName" onChange={onChangeUser}/>
-              <Input type="text" placeholder="Last name" name='lastName' onChange={onChangeUser}/>
+              <Input type="text" placeholder="First name" name="firstName" onChange={onChangeUserRegister}/>
+              <Input type="text" placeholder="Last name" name='lastName' onChange={onChangeUserRegister}/>
             </NameContainer>
-            <Input type="mail" placeholder="E-mail" name='email' onChange={onChangeUser}/>
-            <Input type="text" placeholder="Phone number" name='phoneNumber' onChange={onChangeUser}/>
-            <Input type="password" placeholder="Password" name='password' onChange={onChangeUser}/>
-            <Input type="password" placeholder="Confirm password" name='confirmPassword' onChange={onChangeUser}/>
+            <Input type="mail" placeholder="E-mail" name='email' onChange={onChangeUserRegister}/>
+            <Input type="text" placeholder="Phone number" name='phoneNumber' onChange={onChangeUserRegister}/>
+            <Input type="password" placeholder="Password" name='password' onChange={onChangeUserRegister}/>
+            <Input type="password" placeholder="Confirm password" name='confirmPassword' onChange={onChangeUserRegister}/>
           </InputContainer>
           <ButtonContainer>
-            <StyledButton onClick={()=>register()}> SIGNUP </StyledButton>
+            <StyledButton onClick={()=>register(userRegister)}> SIGNUP </StyledButton>
           </ButtonContainer>
           <SwitchButton onClick={() => setForm("login")}>LOG IN</SwitchButton>
         </Wrapper>
