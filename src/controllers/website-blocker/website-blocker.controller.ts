@@ -21,7 +21,7 @@ export class WebsiteBlockerController {
   constructor(private readonly websiteBlockerService: WebsiteBlockerService) {}
 
   @Post()
-  @ApiBody({ type: CreateSpaceDTO })
+  @ApiBody({ type: CreateWebsiteBlockerDTO })
   @ApiOkResponseBase(BaseResponse)
   async create(@Body() createWebsiteBlockerDto: CreateWebsiteBlockerDTO) {
     return await this.websiteBlockerService.create(createWebsiteBlockerDto);
@@ -38,8 +38,9 @@ export class WebsiteBlockerController {
   }
 
   @Patch(':id')
+  @ApiBody({ type: CreateWebsiteBlockerDTO })
   update(@Param('id') id: string, @Body() updateWebsiteBlockerDto: CreateWebsiteBlockerDTO) {
-    return this.websiteBlockerService.update(+id, updateWebsiteBlockerDto);
+    return this.websiteBlockerService.update(id, updateWebsiteBlockerDto);
   }
 
   @Delete(':id')

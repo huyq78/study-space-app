@@ -4,6 +4,7 @@ import { JwtModule } from 'src/modules/jwt/jwt.module';
 import { MongoModule } from 'src/modules/mongodb';
 import { NormalCollection } from 'src/shared/constants/mongo.collection';
 import { AuthenticationService } from './authentication.service';
+import { WebSocketModule } from 'src/modules/socket/websocket.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { AuthenticationService } from './authentication.service';
       NormalCollection.USERS,
       NormalCollection.USER_LOGIN,
     ]),
+    WebSocketModule,
   ],
   providers: [AuthenticationService],
   exports: [AuthenticationService],

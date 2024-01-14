@@ -12,6 +12,8 @@ export class WebsiteBlockerService {
   constructor(
     @InjectCollection(NormalCollection.WEBSITE_BLOCKER)
     private readonly websiteBlockerCollection: Collection,
+    @InjectCollection(NormalCollection.USER_WEBSITE_BLOCKER)
+    private readonly userWebsiteBlockerCollection: Collection,
     @InjectClient()
     private readonly client: MongoClient,
   ) {}
@@ -96,8 +98,50 @@ export class WebsiteBlockerService {
     }
   }
 
-  update(id: number, updateSpaceDto: CreateWebsiteBlockerDTO) {
-    return `This action updates a #${id} space`;
+  async update(id: string, updateWebsiteBlockerDto: CreateWebsiteBlockerDTO) {
+    const session = this.client.startSession();
+    try {
+      session.startTransaction();
+
+      const { name, url } = updateWebsiteBlockerDto;
+
+      const website = await this.websiteBlockerCollection.findOne(
+        {
+          _id: new ObjectId(id),
+        },
+        { session },
+      );
+      if (!website) {
+        throw BaseResponse.notFound('Website Blocker not found');
+      }
+
+      await this.websiteBlockerCollection.updateOne(
+        {
+          _id: new ObjectId(id),
+        },
+        {
+          $set: {
+            name: name,
+            url: url,
+          },
+        },
+        {
+          session,
+        },
+      );
+
+      await session.commitTransaction();
+
+      return BaseResponse.ok('Update Blocked Website successfully');
+    } catch (error) {
+      this.logger.error('Got error when update Blocked Website');
+      this.logger.error(error.message);
+      await session.abortTransaction();
+      await session.endSession();
+      throw new BadRequestException(error);
+    } finally {
+      await session.endSession();
+    }
   }
 
   async remove(id: string) {

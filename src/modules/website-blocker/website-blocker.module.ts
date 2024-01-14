@@ -5,7 +5,12 @@ import { WebsiteBlockerService } from './website-blocker.service';
 import { WebsiteBlockerController } from 'src/controllers/website-blocker/website-blocker.controller';
 
 @Module({
-  imports: [MongoModule.forFeature([NormalCollection.WEBSITE_BLOCKER])],
+  imports: [
+    MongoModule.forFeature([
+      NormalCollection.WEBSITE_BLOCKER,
+      NormalCollection.USER_WEBSITE_BLOCKER,
+    ]),
+  ],
   controllers: [WebsiteBlockerController],
   providers: [WebsiteBlockerService],
   exports: [WebsiteBlockerService],

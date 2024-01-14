@@ -20,8 +20,8 @@ export class BaseResponse<T> {
     return new BaseResponse(ResponseCodeConstant.SUCCESS, message, data);
   }
 
-  public static notFound<T>(): BaseResponse<T> {
-    return new BaseResponse(ResponseCodeConstant.RESOURCE_NOTFOUND, undefined);
+  public static notFound<T>(message: string = ''): BaseResponse<T> {
+    return new BaseResponse(ResponseCodeConstant.RESOURCE_NOTFOUND, message);
   }
 
   public static badRequest(msg: string) {

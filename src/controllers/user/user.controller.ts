@@ -58,7 +58,6 @@ export class UserController {
   public async getProfile(
     @User('_id') userId: string,
   ): Promise<GetProfileResponse> {
-    console.log(userId);
     return await this.service.getProfile(userId);
   }
 

@@ -17,6 +17,7 @@ import { JwtAuthenticationModule } from './middlewares/jwt-middleware/jwt.module
 import { SpaceModule } from './modules/space/space.module';
 import { WebSocketModule } from './modules/socket/websocket.module';
 import { WebsiteBlockerModule } from './modules/website-blocker/website-blocker.module';
+import { UserWebsiteBlockerModule } from './modules/user-website-blocker/user-website-blocker.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { WebsiteBlockerModule } from './modules/website-blocker/website-blocker.
     SpaceModule,
     WebSocketModule,
     WebsiteBlockerModule,
+    UserWebsiteBlockerModule,
   ],
   controllers: [AppController, ...controllers],
   providers: [

@@ -22,6 +22,7 @@ import { CreateNewPasswordResponse } from 'src/shared/dto/response/authenticatio
 import { isType } from 'src/shared/utils/is-type.utils';
 import { RefreshTokenDTO } from 'src/shared/dto/request/authentication/refresh-token.request';
 import { RefreshTokenResponse } from 'src/shared/dto/response/authentication/refresh-token.response';
+import { WebSocketGatewayy } from 'src/modules/socket/websocket.gateway';
 
 @Injectable()
 export class AuthenticationService {
@@ -33,6 +34,7 @@ export class AuthenticationService {
     private readonly userCollection: Collection,
     @InjectCollection(NormalCollection.USER_LOGIN)
     private readonly userLoginCollection: Collection,
+    private readonly websocketGateway: WebSocketGatewayy,
     @InjectClient()
     private readonly client: MongoClient,
   ) {}
