@@ -44,14 +44,12 @@ export class UserWebsiteBlockerService {
         }
       });
 
-      const updatePromises = [];
       updateGroup.new.length > 0 &&
-        updatePromises.push(
-          this.userWebsiteBlockerCollection.insertMany(updateGroup.new),
-        );
-      updateGroup.block.length > 0 &&
-        updatePromises.push(
-          this.userWebsiteBlockerCollection.updateMany(
+        (await this.userWebsiteBlockerCollection.insertMany(updateGroup.new, {
+          session,
+        })),
+        updateGroup.block.length > 0 &&
+          (await this.userWebsiteBlockerCollection.updateMany(
             {
               _id: {
                 $in: updateGroup.block,
@@ -62,11 +60,12 @@ export class UserWebsiteBlockerService {
                 status: BLOCK_STATUS.BLOCKED,
               },
             },
-          ),
-        );
-      updateGroup.unblock.length > 0 &&
-        updatePromises.push(
-          this.userWebsiteBlockerCollection.updateMany(
+            {
+              session,
+            },
+          )),
+        updateGroup.unblock.length > 0 &&
+          (await this.userWebsiteBlockerCollection.updateMany(
             {
               _id: {
                 $in: updateGroup.unblock,
@@ -77,12 +76,12 @@ export class UserWebsiteBlockerService {
                 status: BLOCK_STATUS.UNBLOCKED,
               },
             },
-          ),
-        );
-      await Promise.all(updatePromises);
+            {
+              session,
+            },
+          ));
 
       const blockedWebsites = await this.findAll(userId, BLOCK_STATUS.BLOCKED);
-
       const socketMessage = {
         action: 'block-websites',
         userId: userId,
