@@ -47,9 +47,7 @@ export class UserWebsiteBlockerService {
       const updatePromises = [];
       updateGroup.new.length > 0 &&
         updatePromises.push(
-          this.userWebsiteBlockerCollection.insertMany(updateGroup.new, {
-            session,
-          }),
+          this.userWebsiteBlockerCollection.insertMany(updateGroup.new),
         );
       updateGroup.block.length > 0 &&
         updatePromises.push(
@@ -64,7 +62,6 @@ export class UserWebsiteBlockerService {
                 status: BLOCK_STATUS.BLOCKED,
               },
             },
-            { session },
           ),
         );
       updateGroup.unblock.length > 0 &&
@@ -80,7 +77,6 @@ export class UserWebsiteBlockerService {
                 status: BLOCK_STATUS.UNBLOCKED,
               },
             },
-            { session },
           ),
         );
       await Promise.all(updatePromises);
@@ -107,11 +103,11 @@ export class UserWebsiteBlockerService {
     } catch (error) {
       this.logger.error('Got error when update User Website Blocker');
       this.logger.error(error);
-      await session.abortTransaction();
+      session.inTransaction() && (await session.abortTransaction());
       await session.endSession();
       throw new BadRequestException(error);
     } finally {
-      await session.endSession();
+      session.inTransaction() && (await session.abortTransaction());
     }
   }
 
@@ -137,11 +133,11 @@ export class UserWebsiteBlockerService {
     } catch (error) {
       this.logger.error('Got error when create space');
       this.logger.error(error);
-      await session.abortTransaction();
+      session.inTransaction() && (await session.abortTransaction());
       await session.endSession();
       throw new BadRequestException(error);
     } finally {
-      await session.endSession();
+      session.inTransaction() && (await session.abortTransaction());
     }
   }
 
