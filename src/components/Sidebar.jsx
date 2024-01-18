@@ -3,9 +3,11 @@ import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
 import ManageSpace from './space/ManageSpace';
 import Timer from './timer/Timer';
-import { getListSpace } from '../redux/apiCall';
+import { getListSpace, getListWebsite } from '../redux/apiCall';
 import { useDispatch } from 'react-redux';
 import { listSpace, setUpload } from '../redux/spaceRedux';
+import WebsiteBlocker from './block-website/WebsiteBlocker';
+import { addListBlocker, listWebsite } from '../redux/blockerRedux';
 
 const Container = styled.div`
     position: absolute;
@@ -61,12 +63,27 @@ const Icon = styled(FontAwesomeIcon)`
 function Sidebar() {
     const [manageSpace, setManageSpace] = useState(false);
     const [timer, setTimer] = useState(false);
+    const [blocker, setBlocker] = useState(false);
     const dispatch = useDispatch();
 
     useEffect(() => {
         if (localStorage.getItem("access_token")) {
             getListSpace().then(res => {
                 dispatch(listSpace(res));
+            })
+        }
+    }, [])
+
+    useEffect(() => {
+        if (localStorage.getItem("access_token")) {
+            getListWebsite().then(res => {
+                const newList = res.map(({name, url, userId, ...rest}) => {
+                    return rest;
+                })
+                const newList2 = newList.map(({_id, ...rest}) => ({...rest, id: _id}));
+                dispatch(listWebsite(res));
+                dispatch(addListBlocker(newList2));
+                console.log(newList2);
             })
         }
     }, [])
@@ -96,9 +113,9 @@ function Sidebar() {
                         </Title>
                         <Icon icon="fa-solid fa-list-check" />
                     </Item>
-                    <Item>
+                    <Item onClick={() => setBlocker(!blocker)}>
                         <Title>
-                            Calender
+                            BLOCKER
                         </Title>
                         <Icon icon="fa-regular fa-calendar-check" />
                     </Item>
@@ -112,6 +129,7 @@ function Sidebar() {
             </Container>
             {manageSpace ? <ManageSpace /> : <></>}
             {timer ? <Timer /> : <></>}
+            {blocker ? <WebsiteBlocker /> : <></>}
         </>
     )
 }

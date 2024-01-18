@@ -118,3 +118,32 @@ export const deleteSpace = async (spaceId) => {
         console.log(err);
     }
 };
+
+/*---------------------------WEBSITE BLOCKER--------------------------- */
+
+export const getListWebsite = async () => {
+    try {
+        const res = await userRequest.get("/api/user-website-blocker");
+        return res.data.data.data;
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+export const updateListWebsite = async (list) => {
+    try {
+        const res = await userRequest.patch("/api/user-website-blocker", list);
+        return res;
+    } catch (err) {
+        console.log(err);
+    }
+};
+
+export const deleteWebsite = async (websiteId) => {
+    try {
+        const res = await userRequest.delete(`/api/user-website-blocker/${websiteId}`);
+        console.log(res.data);
+    } catch (err) {
+        console.log(err);
+    }
+};

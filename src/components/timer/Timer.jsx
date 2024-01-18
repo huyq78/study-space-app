@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { setTimer, updateTimer } from '../../redux/timerRedux';
 import { useRef } from 'react';
 import Draggable from 'react-draggable';
+import { updateListWebsite } from '../../redux/apiCall';
 
 const Container = styled.div`
     position: absolute;
@@ -284,6 +285,7 @@ const SaveBtn = styled.button`
 `
 function Timer() {
     const timer = useSelector((state) => state.timer);
+    const blocker = useSelector((state) => state.blocker.listBlocker);
     const [popup, setPopup] = useState(false);
     const [timerInSec, setTimerInSec] = useState(timer.currentTimer * 60);
     const [isActive, setIsActive] = useState(false);

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import styled from 'styled-components';
-import { deleteSpace, getListSpace, getSpace } from '../../redux/apiCall';
+import { deleteSpace, getListSpace, getListWebsite, getSpace } from '../../redux/apiCall';
 import { useDispatch, useSelector } from 'react-redux';
 import UploadSpace from './UploadSpace';
 import { delSpace, listSpace, setUpload, upSpace } from '../../redux/spaceRedux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { addListBlocker, listWebsite } from '../../redux/blockerRedux';
 
 const Container = styled.div`
     position: absolute;
