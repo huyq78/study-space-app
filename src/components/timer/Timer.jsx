@@ -203,7 +203,7 @@ const FunctionTitle = styled.span`
     background: #fcfcfc;
     border-color: #e9e9e9;
     height: unset;
-    padding: 6px 7px;
+    padding: 6px 3px;
     font-size: 15px;
     cursor: pointer; 
 `

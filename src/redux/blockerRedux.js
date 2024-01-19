@@ -18,11 +18,20 @@ const blockerSlice = createSlice({
         state.listBlocker.push(action.payload);
     },
     delBlocker: (state, action) => {
-        const website = state.website?.filter((website) => website._id !== action.payload);
-        state.website = website;
+        const website = state.listBlocker?.filter((website) => website.id !== action.payload);
+        state.listBlocker = website;
+    },
+    updateStatus: (state, action) => {
+        const blockers = state.listBlocker?.map((blocker) => {
+          if (blocker.id === action.payload) {
+            return {...blocker, status : "unblocked" };
+          }
+          return blocker;
+        })
+        state.listBlocker = blockers;
     }
   },
 });
 
-export const { listWebsite, addListBlocker, addNewBlocker, delBlocker } = blockerSlice.actions;
+export const { listWebsite, addListBlocker, addNewBlocker, delBlocker, updateStatus } = blockerSlice.actions;
 export default blockerSlice.reducer;

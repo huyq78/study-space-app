@@ -5,8 +5,8 @@ import styled from 'styled-components';
 import { setTimer, updateTimer } from '../../redux/timerRedux';
 import { useRef } from 'react';
 import Draggable from 'react-draggable';
-import { getListWebsite, updateListWebsite } from '../../redux/apiCall';
-import { addListBlocker, addNewBlocker, listBlocker, listWebsite } from '../../redux/blockerRedux';
+import { deleteWebsite, getListWebsite, updateListWebsite } from '../../redux/apiCall';
+import { addListBlocker, addNewBlocker, delBlocker, listBlocker, listWebsite, updateStatus } from '../../redux/blockerRedux';
 
 const Container = styled.div`
     position: absolute;
@@ -45,21 +45,21 @@ const BlockTitle = styled.div`
 
 const BlockContent = styled.div`
     display: flex;
-    /* flex-wrap: wrap; */
-    min-width: 100%;
+    min-width: 90%;
     flex-direction: column;
-    margin: 10px;
-    height: 80px;
+    margin: 20px 0px;
+    height: 100px;
     overflow-y: scroll;
-
+    
 `
 
 const BlockItem = styled.div`
     display: flex;
     justify-content: space-around;
+    margin: 5px 0px;
 `
 
-const FormBlocker = styled.form`
+const FormBlocker = styled.div`
     display: flex;
     flex-direction: column;
     margin: 10px;
@@ -115,20 +115,52 @@ const SubmitBtn = styled.button`
         background-color: rgb(120, 120, 120);
     }
 `
+const Item = styled.div`
+    flex: 3;
+    display: flex;
+    justify-content: center;
+`
 
+const BlockBtn = styled.button`
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+    border-radius: 20px;
+    cursor: pointer;
+`
+
+const DelBtn = styled.button`
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+`
+const Icon = styled(FontAwesomeIcon)`
+    height: 16px;
+    width: 16px;
+    border-radius: 40%;
+    color: rgb(78, 78, 78);
+`
 
 function WebsiteBlocker() {
     const user = useSelector((state) => state.user.currentUser);
     const listBlocker = useSelector((state) => state.blocker)
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(true);
+    const [block, setBlock] = useState(true);
     const [blocker, setBlocker] = useState(
         {
             name: "",
             url: ""
         }
     )
-
+    const refName = useRef(null);
+    const refUrl = useRef(null);
     useEffect(() => {
         async function callApi() {
             try {
@@ -157,6 +189,20 @@ function WebsiteBlocker() {
             status: "blocked"
         }));
         setLoading(!loading);
+        refName.current.value = "";
+        refUrl.current.value = "";
+    }
+
+    const handleBlock = (id) => {
+        dispatch(updateStatus(id));
+        setBlock(!block);
+        setLoading(!loading);
+    }
+
+    const handleDelete = (id) => {
+        deleteWebsite(id);
+        dispatch(delBlocker(id));
+        setLoading(!loading);
     }
 
     const onChange = (
@@ -181,20 +227,28 @@ function WebsiteBlocker() {
                             {listBlocker.website?.map((blocker) => {
                                 return (
                                     <BlockItem key={blocker._id}>
-                                        <div>
+                                        <Item>
                                             {blocker.name}
-                                        </div>
-                                        <div>
-                                            {blocker.status}
-                                        </div>
-
+                                        </Item>
+                                        {blocker.status === "blocked" ?
+                                            <BlockBtn style={{ color: "red", border: "1px solid red" }} onClick={() => handleBlock(blocker._id)}>
+                                                {blocker.status}
+                                            </BlockBtn>
+                                            :
+                                            <BlockBtn style={{ color: "green", border: "1px solid green" }} onClick={() => handleBlock(blocker._id)}>
+                                                {blocker.status}
+                                            </BlockBtn>
+                                        }
+                                        <DelBtn onClick={() => handleDelete(blocker._id)}>
+                                            <Icon icon="fa-solid fa-trash" />
+                                        </DelBtn>
                                     </BlockItem>
                                 )
                             })}
                         </BlockContent>
                         <FormBlocker>
-                            <Input type='text' placeholder='Name' name='name' onChange={onChange} />
-                            <Input type='text' placeholder='Url' name='url' onChange={onChange} />
+                            <Input ref={refName} type='text' placeholder='Name' name='name' onChange={onChange} />
+                            <Input ref={refUrl} type='text' placeholder='Url' name='url' onChange={onChange} />
                             <SubmitBtn onClick={handleClick}>Add</SubmitBtn>
                         </FormBlocker>
                     </Wrapper>

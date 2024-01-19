@@ -50,7 +50,7 @@ const SpaceControl = styled.div`
     flex-wrap: wrap;
     margin: 10px;
     width: 80%;
-    height: 80px;
+    height: 300px;
     overflow-y: scroll;
 `
 
@@ -87,6 +87,7 @@ const Icon = styled(FontAwesomeIcon)`
 `
 
 function ManageSpace() {
+    const user = useSelector((state) => state.user.currentUser)
     const space = useSelector((state) => state.space);
     const dispatch = useDispatch();
     const [currentSpaceId, setCurrentSpaceId] = useState();
@@ -127,14 +128,18 @@ function ManageSpace() {
                                     )
                                 })}
                             </SpaceControl>
-                            <UploadWrapper>
-                                <SpaceBtn onClick={() => dispatch(setUpload(!space.upload))}>
-                                    +
-                                </SpaceBtn>
-                                <SpaceBtn onClick={() => handleDelete(currentSpaceId)}>
-                                    <Icon icon="fa-solid fa-trash" />
-                                </SpaceBtn>
-                            </UploadWrapper>
+                            {user?.role === "admin" ?
+                                <UploadWrapper>
+                                    <SpaceBtn onClick={() => dispatch(setUpload(!space.upload))}>
+                                        +
+                                    </SpaceBtn>
+                                    <SpaceBtn onClick={() => handleDelete(currentSpaceId)}>
+                                        <Icon icon="fa-solid fa-trash" />
+                                    </SpaceBtn>
+                                </UploadWrapper>
+                                :
+                                <></>
+                            }
                         </SpaceHeader>
                     </SpaceWrapper>
                 </Wrapper>
