@@ -147,6 +147,13 @@ const Icon = styled(FontAwesomeIcon)`
     color: rgb(78, 78, 78);
 `
 
+const SubmitWrapper = styled.div`
+    display: flex;
+    flex-direction: row;
+`
+const Alert = styled.div`
+    color: green;
+`
 function WebsiteBlocker() {
     const user = useSelector((state) => state.user.currentUser);
     const listBlocker = useSelector((state) => state.blocker)
@@ -159,6 +166,7 @@ function WebsiteBlocker() {
             url: ""
         }
     )
+    const [success, setSuccess] = useState(false);
     const refName = useRef(null);
     const refUrl = useRef(null);
     useEffect(() => {
@@ -172,7 +180,6 @@ function WebsiteBlocker() {
                         const newList2 = newList.map(({ _id, ...rest }) => ({ ...rest, id: _id }));
                         dispatch(listWebsite(res));
                         dispatch(addListBlocker(newList2));
-                        console.log(newList2);
                     })
                 }
             } catch (error) {
@@ -180,6 +187,9 @@ function WebsiteBlocker() {
             }
         }
         callApi();
+        setTimeout(() => {
+            setSuccess(false);
+        }, 5000);
     }, [loading])
 
     const handleClick = () => {
@@ -188,23 +198,28 @@ function WebsiteBlocker() {
             url: blocker.url,
             status: "blocked"
         }));
-        setLoading(!loading);
+        // setLoading(!loading);
         refName.current.value = "";
         refUrl.current.value = "";
     }
 
-    const handleBlock = (id) => {
-        dispatch(updateStatus(id));
+    const handleBlock = (props) => {
+        dispatch(updateStatus(props));
         setBlock(!block);
-        setLoading(!loading);
+        // setLoading(!loading);
     }
 
     const handleDelete = (id) => {
-        deleteWebsite(id);
         dispatch(delBlocker(id));
-        setLoading(!loading);
+        console.log(listBlocker.listBlocker)
+
+        // setLoading(!loading);
     }
 
+    const handleUpdate = () => {
+        setLoading(!loading);
+        setSuccess(true);
+    }
     const onChange = (
         (e) => {
             setBlocker((blocker) => {
@@ -226,20 +241,20 @@ function WebsiteBlocker() {
                         <BlockContent>
                             {listBlocker.website?.map((blocker) => {
                                 return (
-                                    <BlockItem key={blocker._id}>
+                                    <BlockItem key={blocker.name}>
                                         <Item>
                                             {blocker.name}
                                         </Item>
                                         {blocker.status === "blocked" ?
-                                            <BlockBtn style={{ color: "red", border: "1px solid red" }} onClick={() => handleBlock(blocker._id)}>
+                                            <BlockBtn style={{ color: "red", border: "1px solid red" }} onClick={() => handleBlock({ id: blocker._id, name: blocker.name, status: "unblocked" })}>
                                                 {blocker.status}
                                             </BlockBtn>
                                             :
-                                            <BlockBtn style={{ color: "green", border: "1px solid green" }} onClick={() => handleBlock(blocker._id)}>
+                                            <BlockBtn style={{ color: "green", border: "1px solid green" }} onClick={() => handleBlock({ id: blocker._id, name: blocker.name, status: "blocked" })}>
                                                 {blocker.status}
                                             </BlockBtn>
                                         }
-                                        <DelBtn onClick={() => handleDelete(blocker._id)}>
+                                        <DelBtn onClick={() => handleDelete({id: blocker._id, name: blocker.name})}>
                                             <Icon icon="fa-solid fa-trash" />
                                         </DelBtn>
                                     </BlockItem>
@@ -249,7 +264,11 @@ function WebsiteBlocker() {
                         <FormBlocker>
                             <Input ref={refName} type='text' placeholder='Name' name='name' onChange={onChange} />
                             <Input ref={refUrl} type='text' placeholder='Url' name='url' onChange={onChange} />
-                            <SubmitBtn onClick={handleClick}>Add</SubmitBtn>
+                            <SubmitWrapper>
+                                <SubmitBtn onClick={handleClick}>Add</SubmitBtn>
+                                <SubmitBtn onClick={handleUpdate}>Update</SubmitBtn>
+                            </SubmitWrapper>
+                            {success ? <Alert>Update success!</Alert> : <></>}
                         </FormBlocker>
                     </Wrapper>
                 </Container >

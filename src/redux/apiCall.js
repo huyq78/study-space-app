@@ -133,6 +133,7 @@ export const getListWebsite = async () => {
 export const updateListWebsite = async (list) => {
     try {
         const res = await userRequest.patch("/api/user-website-blocker", list);
+        console.log(res);
         return res;
     } catch (err) {
         console.log(err);

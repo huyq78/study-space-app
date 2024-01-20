@@ -107,7 +107,7 @@ function ManageSpace() {
         })
     }
 
-    const handleDelete = async (id) => {
+    const handleDelete = (id) => {
         console.log(id)
         deleteSpace(id);
         dispatch(delSpace(id));
