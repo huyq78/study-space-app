@@ -124,6 +124,7 @@ export const deleteSpace = async (spaceId) => {
 export const getListWebsite = async () => {
     try {
         const res = await userRequest.get("/api/user-website-blocker");
+        console.log(res);
         return res.data.data.data;
     } catch (err) {
         console.log(err);

@@ -83,7 +83,7 @@ function Sidebar() {
                 const newList2 = newList.map(({_id, ...rest}) => ({...rest, id: _id}));
                 dispatch(listWebsite(res));
                 dispatch(addListBlocker(newList2));
-                console.log(newList2);
+                console.log(res);
             })
         }
     }, [])
