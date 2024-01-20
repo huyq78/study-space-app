@@ -81,7 +81,7 @@ export class UserWebsiteBlockerService {
             },
           ));
 
-      const blockedWebsites = await this.findAll(userId, BLOCK_STATUS.BLOCKED);
+      const blockedWebsites = await this.findAllWithSession(userId, BLOCK_STATUS.BLOCKED, session);
       const socketMessage = {
         action: 'block-websites',
         userId: userId,
@@ -137,6 +137,31 @@ export class UserWebsiteBlockerService {
       throw new BadRequestException(error);
     } finally {
       session.inTransaction() && (await session.abortTransaction());
+    }
+  }
+
+  async findAllWithSession(
+    userId?: string,
+    status?: BLOCK_STATUS,
+    session?: ClientSession,
+  ) {
+    try {
+      const filter = {};
+      userId && (filter['userId'] = userId);
+      status && (filter['status'] = status);
+      const websitesByUser: UserWebsiteBlockerModel[] =
+        (await this.userWebsiteBlockerCollection
+          .find(filter, { session })
+          .toArray()) as UserWebsiteBlockerModel[];
+
+      return BaseResponse.ok(
+        'Get Blocked Websites successfully',
+        websitesByUser,
+      );
+    } catch (error) {
+      this.logger.error('Got error when create space');
+      this.logger.error(error);
+      throw new BadRequestException(error);
     }
   }
 
