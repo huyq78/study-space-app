@@ -25,6 +25,6 @@ chrome.storage.sync.get(['blockedWebsites'], function (result) {
     blockedWebsites.some((website) => window.location.href.includes(website))
   ) {
     // Redirect or block the website
-    window.location.href = 'https://docs.nestjs.com/';
+    window.location.href = 'http://localhost:3000/block';
   }
 });

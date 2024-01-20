@@ -1,10 +1,12 @@
+chrome.storage.sync.set({ userId: null });
+
 chrome.storage.sync.set({ blockedWebsites: [] }, function () {
   // Update the UI with the new list of blocked websites
   chrome.runtime.sendMessage({ type: 'update-ui' });
 });
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action === 'updateBlockedWebsites') {
+  if (request?.action === 'updateBlockedWebsites') {
     chrome.storage.sync.set({ blockedWebsites: request.blockedWebsites });
   }
 });
@@ -16,14 +18,42 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+let userId;
+
 chrome.runtime.onMessageExternal.addListener(function (
   request,
   sender,
   sendResponse
 ) {
-  chrome.storage.sync.set({
-    blockedWebsites: JSON.parse(request.messageFromWeb.blockedWebsites),
-  });
+  if (request?.type === 'save-user-id') {
+    const root = JSON.parse(request.localStorage['persist:root']);
+    const user = JSON.parse(root?.user);
+    console.log('Logged in user: ', user.currentUser.id);
+    userId = user?.currentUser?.id;
+    chrome.storage.sync.set({ userId: userId });
+
+    const blocker = JSON.parse(root?.blocker);
+    const website = blocker?.website;
+    const websites = website?.map((w) => {
+      return {
+        name: w.name,
+        url: w.url,
+      };
+    });
+    chrome.storage.sync.set({ blockedWebsites: websites });
+    // chrome.runtime.sendMessage({
+    //   action: 'updateBlockedWebsites',
+    //   blockedWebsites: websites,
+    // });
+    // chrome.runtime.sendMessage({
+    //   type: 'update-ui',
+    // });
+    sendToPopup({ type: 'block-websites', websites: websites });
+    sendToContentScripts({
+      type: 'block-websites',
+      websites: websites,
+    });
+  }
 });
 
 // socket implementation
@@ -34,7 +64,7 @@ connectWebSocket();
 
 function connectWebSocket() {
   if (!socket || socket.readyState === WebSocket.CLOSED) {
-    socket = new WebSocket('ws://localhost:3000');
+    socket = new WebSocket('ws://localhost:8888');
 
     socket.onopen = (event) => {
       console.log('WebSocket connected');
@@ -42,11 +72,13 @@ function connectWebSocket() {
 
     socket.onmessage = async (event) => {
       console.log('Received event:', event);
-      const message = JSON.parse(await event.data.text());
+      const message = JSON.parse(await event.data);
       console.log('Received message:', message);
 
       // Handle the specific event you're interested in
-      if (message.action === 'block-websites') {
+      console.log(message.userId);
+      console.log(userId);
+      if (message.action === 'block-websites' && message.userId === userId) {
         sendToPopup({ type: 'block-websites', websites: message.websites });
         sendToContentScripts({
           type: 'block-websites',
@@ -86,18 +118,14 @@ function ensureSendMessage(tabId, message, callback) {
       chrome.tabs.sendMessage(tabId, message, callback);
     } else {
       // No listener on the other end
-      chrome.tabs.executeScript(
-        tabId,
-        { file: 'content.js' },
-        function () {
-          if (chrome.runtime.lastError) {
-            console.error(chrome.runtime.lastError);
-            throw Error('Unable to inject script into tab ' + tabId);
-          }
-          // OK, now it's injected and ready
-          chrome.tabs.sendMessage(tabId, message, callback);
+      chrome.tabs.executeScript(tabId, { file: 'content.js' }, function () {
+        if (chrome.runtime.lastError) {
+          console.error(chrome.runtime.lastError);
+          throw Error('Unable to inject script into tab ' + tabId);
         }
-      );
+        // OK, now it's injected and ready
+        chrome.tabs.sendMessage(tabId, message, callback);
+      });
     }
   });
 }
