@@ -1,7 +1,4 @@
 import React, { useState, useReducer } from "react";
-import ReactDOM from "react-dom";
-import uuid from "uuid";
-import "./newTodoForm.css";
 
 function NewTodoForm({ task, createTodo }) {
   const [userInput, setUserInput] = useReducer(
@@ -15,9 +12,9 @@ function NewTodoForm({ task, createTodo }) {
     setUserInput({ [evt.target.name]: evt.target.value });
   };
 
-  const handleSubmit = evt => {
-    evt.preventDefault();
-    const newTodo = { id: uuid(), task: userInput.task, completed: false };
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newTodo = { task: userInput.task, completed: false };
     createTodo(newTodo);
     setUserInput({ task: "" });
   };

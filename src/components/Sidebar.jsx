@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux';
 import { listSpace, setUpload } from '../redux/spaceRedux';
 import WebsiteBlocker from './block-website/WebsiteBlocker';
 import { addListBlocker, listWebsite } from '../redux/blockerRedux';
+import TodoList from './todo/TodoList';
 
 const Container = styled.div`
     position: absolute;
@@ -61,9 +62,10 @@ const Icon = styled(FontAwesomeIcon)`
     color: rgb(78, 78, 78);
 `
 function Sidebar() {
-    const [manageSpace, setManageSpace] = useState(false);
+    const [manageSpace, setManageSpace] = useState(true);
     const [timer, setTimer] = useState(false);
     const [blocker, setBlocker] = useState(false);
+    const [task, setTask] = useState(false);
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -107,7 +109,7 @@ function Sidebar() {
                         </Title>
                         <Icon icon="fa-solid fa-clock" />
                     </Item>
-                    <Item>
+                    <Item onClick={() => setTask(!task)}>
                         <Title>
                             TASK
                         </Title>
@@ -119,17 +121,18 @@ function Sidebar() {
                         </Title>
                         <Icon icon="fa-regular fa-calendar-check" />
                     </Item>
-                    <Item>
+                    {/* <Item>
                         <Title>
                             MEDIA
                         </Title>
                         <Icon icon="fa-regular fa-circle-play" />
-                    </Item>
+                    </Item> */}
                 </Wrapper>
             </Container>
             {manageSpace ? <ManageSpace /> : <></>}
             {timer ? <Timer /> : <></>}
             {blocker ? <WebsiteBlocker /> : <></>}
+            {task ? <TodoList/> : <></>}
         </>
     )
 }

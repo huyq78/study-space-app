@@ -15,6 +15,7 @@ import storage from "redux-persist/lib/storage";
 import { thunk } from "redux-thunk";
 import timerRedux from "./timerRedux";
 import blockerRedux from "./blockerRedux";
+import todoRedux from "./todoRedux";
 
 
 const persistConfig = {
@@ -23,7 +24,7 @@ const persistConfig = {
   storage,
 };
 
-const rootReducer = combineReducers({ user: userReducer, space: spaceReducer, timer: timerRedux, blocker: blockerRedux });
+const rootReducer = combineReducers({ user: userReducer, space: spaceReducer, timer: timerRedux, blocker: blockerRedux, todo: todoRedux });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

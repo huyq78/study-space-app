@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { setTimer, updateTimer } from '../../redux/timerRedux';
 import { useRef } from 'react';
 import Draggable from 'react-draggable';
-import { updateListWebsite } from '../../redux/apiCall';
+import NotificationSound from "../../mixkit-happy-bells-notification-937.wav";
 
 const Container = styled.div`
     position: absolute;
@@ -298,6 +298,7 @@ function Timer() {
     const [func, setFunc] = useState("pomodoro");
     const round = useRef(1);
     const dispatch = useDispatch();
+    const audioPlayer = useRef(null);
 
     useEffect(() => {
         setFunc("pomodoro");
@@ -311,6 +312,7 @@ function Timer() {
             interval = setInterval(() => {
                 setTimerInSec((seconds) => seconds - 1);
                 if (Number(timerInSec) <= Number(1) && func === "pomodoro") {
+                    audioPlayer.current.play();
                     round.current = round.current + 1;
                     if (Number(round.current) === Number(5)) {
                         setFunctionTime("long-break");
@@ -318,8 +320,10 @@ function Timer() {
                         setFunctionTime("short-break");
                     }
                 } else if (Number(timerInSec) <= Number(1) && func === "short-break") {
+                    audioPlayer.current.play();
                     setFunctionTime("pomodoro");
                 } else if (Number(timerInSec) <= Number(1) && func === "long-break") {
+                    audioPlayer.current.play();
                     setFunctionTime("pomodoro");
                     round.current = 1;
                 }
@@ -416,6 +420,7 @@ function Timer() {
                                             <ResetIcon icon="fa-solid fa-arrow-rotate-right" />
                                         </ResetTimer>
                                     </ControlTimer>
+                                    <audio ref={audioPlayer} src={NotificationSound} />
                                 </CountdownTimer>
                                 <TimerFunction>
                                     <FunctionBtn onClick={() => handleClick("pomodoro")}>
