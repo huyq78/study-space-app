@@ -44,6 +44,6 @@ export class SpaceController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.spaceService.remove(+id);
+    return this.spaceService.remove(id);
   }
 }

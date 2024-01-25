@@ -100,8 +100,37 @@ export class SpaceService {
     return `This action updates a #${id} space`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} space`;
+  async remove(id: string) {
+    const session = this.client.startSession();
+    try {
+      session.startTransaction();
+
+      const space = await this.spaceCollection.findOne(
+        {
+          _id: new ObjectId(id),
+        },
+        { session },
+      );
+      if (!space) {
+        throw BaseResponse.notFound();
+      }
+
+      await this.spaceCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+
+      await session.commitTransaction();
+
+      return BaseResponse.ok('Remove space successfully', space);
+    } catch (error) {
+      this.logger.error('Got error when remove space');
+      this.logger.error(error.message);
+      await session.abortTransaction();
+      await session.endSession();
+      throw new BadRequestException(error);
+    } finally {
+      await session.endSession();
+    }
   }
 
   async validateSpaceInfo(spaceInfo: CreateSpaceDTO, session: ClientSession) {
