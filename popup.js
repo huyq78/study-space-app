@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   chrome.storage.sync.get(['userId'], function (result) {
-    chrome.extension.getBackgroundPage().console.log(result);
+    chrome.extension.getBackgroundPage().console.log('UserId:', result);
     const userId = result.userId;
 
     // Check if the user is logged in
@@ -28,7 +28,7 @@ function updateUI() {
   // Get the current list of blocked websites from Chrome storage
   chrome.storage.sync.get(['blockedWebsites'], function (result) {
     const blockedWebsites = result.blockedWebsites || [];
-    chrome.extension.getBackgroundPage().console.log(result.blockedWebsites);
+    chrome.extension.getBackgroundPage().console.log('Blocked Websites popup: ', result.blockedWebsites);
 
     // Display the list in the popup UI
     const blockedList = document.getElementById('blocked-list');

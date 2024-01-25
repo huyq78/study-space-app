@@ -26,32 +26,52 @@ chrome.runtime.onMessageExternal.addListener(function (
   sendResponse
 ) {
   if (request?.type === 'save-user-id') {
-    const root = JSON.parse(request.localStorage['persist:root']);
-    const user = JSON.parse(root?.user);
-    console.log('Logged in user: ', user.currentUser.id);
-    userId = user?.currentUser?.id;
-    chrome.storage.sync.set({ userId: userId });
+    const root = request.localStorage['persist:root'];
+    let parsedRoot, user;
+    root && (parsedRoot = JSON.parse(root));
+    parsedRoot && (user = JSON.parse(parsedRoot?.user));
+    if (!root || !user?.currentUser?.id) {
+      chrome.storage.sync.set({ userId: null, blockedWebsites: [] });
+    } else {
+      console.log('Logged in user: ', user?.currentUser?.id);
+      userId = user?.currentUser?.id;
+      chrome.storage.sync.set({ userId: userId });
 
-    const blocker = JSON.parse(root?.blocker);
-    const website = blocker?.website;
-    const websites = website?.map((w) => {
-      return {
-        name: w.name,
-        url: w.url,
-      };
-    });
-    chrome.storage.sync.set({ blockedWebsites: websites });
-    // chrome.runtime.sendMessage({
-    //   action: 'updateBlockedWebsites',
-    //   blockedWebsites: websites,
-    // });
-    // chrome.runtime.sendMessage({
-    //   type: 'update-ui',
-    // });
-    sendToPopup({ type: 'block-websites', websites: websites });
+      const blocker = JSON.parse(parsedRoot?.blocker);
+      console.log('Blocker: ', blocker);
+      const websites = blocker?.website;
+      console.log('Blocked website: ', websites);
+      const blockedWebsites = websites
+        ?.filter((w) => w?.status === 'blocked')
+        ?.map((w) => {
+          return {
+            name: w.name,
+            url: w.url,
+          };
+        });
+      chrome.storage.sync.set({ blockedWebsites: blockedWebsites });
+      sendToPopup({ type: 'block-websites', websites: blockedWebsites });
+      sendToContentScripts({
+        type: 'block-websites',
+        websites: blockedWebsites,
+      });
+    }
+  } else if (request?.type === 'first-update-blockers') {
+    const websites = request?.websites;
+    console.log('first-update-blockers: ', websites);
+    const blockedWebsites = websites
+      ?.filter((w) => w?.status === 'blocked')
+      ?.map((w) => {
+        return {
+          name: w.name,
+          url: w.url,
+        };
+      });
+    chrome.storage.sync.set({ blockedWebsites: blockedWebsites });
+    sendToPopup({ type: 'block-websites', websites: blockedWebsites });
     sendToContentScripts({
       type: 'block-websites',
-      websites: websites,
+      websites: blockedWebsites,
     });
   }
 });
