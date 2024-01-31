@@ -1,3 +1,4 @@
+/* global chrome */
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
@@ -86,6 +87,11 @@ function Sidebar() {
                 dispatch(listWebsite(res));
                 dispatch(addListBlocker(newList2));
                 console.log(res);
+                const extensionId = 'aobdlikhmofodpjgdlekgofhblbcjdhl';
+                chrome.runtime.sendMessage(extensionId, {
+                    type: 'first-update-blockers',
+                    websites: res,
+                });
             })
         }
     }, [])

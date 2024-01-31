@@ -1,3 +1,4 @@
+/* global chrome */
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
@@ -109,6 +110,11 @@ function Header() {
             <Btn onClick={() => {
                 localStorage.clear();
                 window.location.reload();
+                const extensionId = 'aobdlikhmofodpjgdlekgofhblbcjdhl';
+                chrome.runtime.sendMessage(extensionId, {
+                    type: 'save-user-id',
+                    localStorage: window.localStorage,
+                });
             }}>Logout</Btn>
         </div>
     );
